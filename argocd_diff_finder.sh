@@ -26,10 +26,11 @@ latestCommitHash=$(git rev-parse HEAD)
 ARGOCD_TMP_DIR=${TMP_DIR:-"/tmp/argocd-cd-tmp"}
 ACTUALGITREPOURL=$(git config --get remote.origin.url)
 PWD=$(pwd)
+ARGOCD_NAMESPACE=${ARGOCD_NAMESPACE:-"argocd"}
 
 cecho(){
     RED="\033[0;31m"
-    GREEN="\033[0;32m"  
+    GREEN="\033[1;32m"  
     YELLOW="\033[0;33m"
     CYAN="\033[0;36m"
     BLUE="\033[0;34m"
@@ -112,7 +113,7 @@ argocdAppDiff() {
 }
 
 cloneArgocdCDRepository() {
-    information "Clone ArgoCD CD Repository ... 🌹"
+    information "Cloning ArgoCD CD Repository ... 🌹"
     ## Clone in temporary directory
     rm -rf  $ARGOCD_TMP_DIR
     git clone $ARGOCD_GIT_URL $ARGOCD_TMP_DIR
@@ -128,21 +129,20 @@ argocdDiff() {
         filesChanged=$(findingAllFilesChangedFromMainBranch)
         if [ -z $filesChanged ]; then
             warning "No files changed"
-            exit 0
+            return 
         fi
         information "Files Changed: "
         echo $filesChanged
         cloneArgocdCDRepository
         cd $ARGOCD_TMP_DIR
         argocdAppDiff $filesChanged 
-        exit 0
     else
         echo "In ArgoCD Repository"
         ## Return the files changed
         filesChanged=$(findingAllFilesChangedFromMainBranch)
         if [ -z "$filesChanged" ]; then
             warning "No files changed"
-            exit 0
+            return
         fi
         information "Files Changed: "
         echo $filesChanged
@@ -152,7 +152,31 @@ argocdDiff() {
     logoutArgocd
 }
 
+portForwarding() {
+    kubectl port-forward svc/argocd-server -n $ARGOCD_NAMESPACE 8080:443  > /dev/null 2>&1 &
+    pid=$!
+    echo $pid  
+}
+
+killPortForwarding() {
+    information "Killing Port Forwarding ... 🌹"
+    kill $1
+    information "Killed Port Forwarding 🌹"
+}
+
 information "Main Branch is ${MAIN_BRANCH_REPO}"
 
+## check if first argument is -p or --port-forward
+if [ "$1" == "-p" ] || [ "$1" == "--port-forward" ]; then
+    pid=$(portForwarding)
+    information "Port Forwarding Started 🌹"
+    ARGOCD_SERVER="localhost:8080"
+    argocdDiff
+    killPortForwarding $pid
+    information "Port Forwarding Stopped 🌹"
+    exit 0
+else
+    argocdDiff
+    exit 0
 
-argocdDiff
+fi
