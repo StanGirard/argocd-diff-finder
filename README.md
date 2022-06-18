@@ -18,9 +18,7 @@
 
 ## Demo
 
-Display the demo.gif from folder demo
-
-<p align="center"><img src="../argocd-diff-finder/demo/demo.gif" width="800px" /></p>
+<p align="center"><img src="./demo/demo.gif" width="800px" /></p>
 
 ## How it works
 
