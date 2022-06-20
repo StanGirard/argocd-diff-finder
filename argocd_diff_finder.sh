@@ -135,7 +135,7 @@ argocdDiff() {
         echo $filesChanged
         cloneArgocdCDRepository
         cd $ARGOCD_TMP_DIR
-        argocdAppDiff $filesChanged 
+        argocdAppDiff "$filesChanged" 
     else
         echo "In ArgoCD Repository"
         ## Return the files changed
@@ -153,7 +153,7 @@ argocdDiff() {
 }
 
 portForwarding() {
-    kubectl port-forward svc/argocd-server -n $ARGOCD_NAMESPACE 8080:443  > /dev/null 2>&1 &
+    kubectl port-forward svc/argocd-server -n argocd 8080:443  > /dev/null 2>&1 &
     pid=$!
     echo $pid  
 }
@@ -180,3 +180,16 @@ else
     exit 0
 
 fi
+
+
+
+
+
+
+
+
+
+
+
+
+
