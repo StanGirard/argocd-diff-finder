@@ -68,13 +68,7 @@ logoutArgocd() {
 }
 
 argocdGitUrlDiff() {
-    if [ "$ACTUALGITREPOURL" != "$ARGOCD_GIT_URL" ]; then
-        echo 1
-    ## Else
-    else
-        echo 0
-    ## Done
-    fi
+    [ "${ACTUALGITREPOURL}" = "${ARGOCD_GIT_URL}" ]
 }
 
 findingAllFilesChangedFromMainBranch() {
@@ -122,9 +116,10 @@ cloneArgocdCDRepository() {
 
 argocdDiff() {
     echo "Checking if in ArgoCD Repository"
-    repoTrue=$(argocdGitUrlDiff)
+    argocdGitUrlDiff
+    areArgocdUrlsEquals=$?
     loginArgocd
-    if [ $repoTrue -eq 1 ]; then
+    if [ $areArgocdUrlsEquals -eq 1 ]; then
         warning "Not in ArgoCD Root Repository"
         filesChanged=$(findingAllFilesChangedFromMainBranch)
         if [ -z $filesChanged ]; then
